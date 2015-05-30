@@ -1,0 +1,5 @@
+package goninja
+
+func New() {
+
+}
