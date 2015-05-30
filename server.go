@@ -1,6 +1,6 @@
 package main
 
-import "./src"
+import "github.com/avdept/goninja"
 
 
 func main(){

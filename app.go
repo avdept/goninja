@@ -3,13 +3,20 @@ package goninja
 import (
 	"net/http"
 	"fmt"
+
 )
+
+ var (
+	 router *Router
+ )
 
 
 func Run() {
 
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":3000", nil)
+
+	router.New()
 
 
 }
