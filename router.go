@@ -1,9 +1,13 @@
 package goninja
 
+import (
+	"fmt"
+)
+
 type Router struct {
-	id int
+
 }
 
-func New() {
-
+func (router *Router) New() {
+	fmt.Println("Router initialized")
 }
