@@ -1,4 +1,4 @@
 # goninja
 Simple web app skeleton on go
 
-## Installation
+## Doc will be available soon
