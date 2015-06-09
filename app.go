@@ -3,13 +3,16 @@ package goninja
 import (
 	"net/http"
 	"fmt"
+	"log"
+	"os"
 )
 
+var LOGGER = log.New(os.Stdout, "", log.Ldate | log.Ltime | log.Lshortfile)
 
 func Run(r *Router) {
 	// router = &Router{}
 
-	http.HandleFunc("/", r.handle)
+	http.HandleFunc("/", r.Handle)
 	http.ListenAndServe(":3000", nil)
 }
 
