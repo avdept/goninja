@@ -2,7 +2,7 @@ package goninja
 
 
 import "net/http"
-import "reflect"
+//import "reflect"
 
 type Controller struct {
     Name string
@@ -12,22 +12,19 @@ type Controller struct {
 
 
 type Response struct {
-    content string
+    Content string
 }
 
 
-var App_controllers map[string]reflect.Type = make(map[string]reflect.Type)
+var App_controllers map[string]interface{} = make(map[string]interface{})
 
 
 
-func CreateControllers(c interface{}) {
-    var t reflect.Type = reflect.TypeOf(c)
-    var elem reflect.Type = t.Elem()
-    App_controllers[elem.Name()] = t
-    LOGGER.Println("Registered controller: ", elem.Name())
+func CreateControllers(name string, c interface{}) {
+    App_controllers[name] = c
 }
 
-func LaunchController(name string) reflect.Type {
+func LaunchController(name string) interface{} {
     return App_controllers[name]
 }
 

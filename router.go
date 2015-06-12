@@ -1,12 +1,9 @@
 package goninja
 
 import (
-	"fmt"
+//	"fmt"
 	"net/http"
 	"reflect"
-		// "strings"
-	// "html/template"
-	// "regexp"
 )
 
 type Params map[string]string
@@ -31,59 +28,36 @@ func NewRouter() *Router {
 	return router
 }
 
-func (r *Router) AddRoute(method string, pattern string, action string, controller string) *Router {
-	fmt.Println(controller)
+func (r *Router) AddRoute(method string, pattern string, action string, controller string, c interface{}) *Router {
 	route := Route{method, pattern, action, controller}
-//	CreateControllers((app_ctrl)(nil))
+	CreateControllers(controller, c)
 	r.routes = append(r.routes, route)
-	LOGGER.Println("Router")
 	return r
 }
 
 func (router *Router) match(r *http.Request) Route {
-	fmt.Println(router.routes)
-	return router.routes[0]
+
+	//This is temporary stub matcher, to test handling of different actions
+	return router.routes[1]
 }
 
 func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
-	LOGGER.Println("served from router")
 	route := router.match(r)
-		var t reflect.Type = LaunchController(route.controller)
+	obj := LaunchController(route.controller)
+	v := reflect.ValueOf(obj)
+	ctrl_type := reflect.TypeOf(obj)
+	ctrl_field := v.Elem().FieldByName("Ctrl")
 
-		// create controller ptr .
-		var appControllerPtr reflect.Value = reflect.New(t)
-		fmt.Println(appControllerPtr)
-		var appController reflect.Value = appControllerPtr.Elem()
+	var C *Controller = &Controller{Request: r,	Writer: w,	Name: ctrl_type.Name()	}
 
-
-
-
-
-		// Create and configure base controller
-		var c  = &Controller{Request: r,	Writer: w,	Name: t.Name()	}
-
-
-		//this should assign *goninja.Controller field in application controllers
-		var controllerField reflect.Value = appController.FieldByName("Ctrl")
-		fmt.Println(reflect.ValueOf(c).Kind())
-		controllerField.Set(reflect.ValueOf(c))
-
-		// Now call the action.
-		// TODO: Figure out the arguments it expects, and try to bind parameters to
-		// them.
-	fmt.Println(controllerField.Kind())
-//	controllerField.Elem().MethodByName(route.action)
-//		method := appControllerPtr.MethodByName(route.action)
-//		if !method.IsValid() {
-//				LOGGER.Printf("E: Function %s not found on Controller %s",
-//						route.action, route.controller)
-//				http.NotFound(w, r)
-//				return
-//			}
-//
-//		resultValue := method.Call([]reflect.Value{ })[0]
-
-//		result := resultValue.Interface().(*Response)
-//		w.Write([]byte(result.content))
-
+	ctrl_field.Set(reflect.ValueOf(C))
+	action := v.MethodByName(route.action)
+	if !action.IsValid(){
+		w.WriteHeader(404)
+		w.Write([]byte("Action with name " + route.action+  " wasn't found in controller " + route.controller))
+	} else {
+		res := action.Call([]reflect.Value{ })[0]
+		result := res.Interface().(*Response)
+		w.Write([]byte(result.Content))
+	}
 }
