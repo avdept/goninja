@@ -24,7 +24,11 @@ func CreateControllers(name string, c interface{}) {
     App_controllers[name] = c
 }
 
-func LaunchController(name string) interface{} {
-    return App_controllers[name]
+func LaunchController(name string) (s interface{}, r bool) {
+    if ctrl, err:= App_controllers[name]; err {
+        return ctrl, err
+    } else {
+        return 0, false
+    }
 }
 
