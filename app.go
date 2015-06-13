@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var LOGGER = log.New(os.Stdout, "", log.Ldate | log.Ltime | log.Lshortfile)
+var LOGGER = log.New(os.Stdout, "", log.Ldate | log.Ltime )
 
 func Run(r *Router) {
 

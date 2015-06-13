@@ -62,7 +62,6 @@ func (router *Router) match(request *http.Request) Route {
 		}
 	}
 
-	LOGGER.Println(wildRoute)
 	if reflect.DeepEqual(route, Route{}) {
 		return wildRoute
 	}
@@ -99,9 +98,9 @@ func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 	obj, ok:= LaunchController(route.controller)
 	if ok {
 		v := reflect.ValueOf(obj)
-		ctrl_type := reflect.TypeOf(obj)
+//		ctrl_type := reflect.TypeOf(obj)
 		ctrl_field := v.Elem().Field(0)
-		var C *Controller = &Controller{Request: r,	Writer: w,	Name: ctrl_type.Name()	}
+		var C *Controller = &Controller{Request: r,	Writer: w,	Name: route.controller, Action: route.action}
 		ctrl_field.Set(reflect.ValueOf(C))
 		action := v.MethodByName(route.action)
 		if !action.IsValid(){
@@ -109,7 +108,7 @@ func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Action with name " + route.action+  " wasn't found in controller " + route.controller))
 		} else {
 			res := action.Call([]reflect.Value{ })[0]
-			result := res.Interface().(*Response)
+			result := res.Interface().(Response)
 			w.Write([]byte(result.Content))
 		}
 	} else {

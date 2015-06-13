@@ -2,10 +2,18 @@ package goninja
 
 
 import "net/http"
+import (
+    "time"
+)
+
+
+
 //import "reflect"
 
 type Controller struct {
     Name string
+    Action string
+    Format string
     Writer http.ResponseWriter
     Request *http.Request
 }
@@ -14,6 +22,24 @@ type Controller struct {
 type Response struct {
     Content string
 }
+
+func (c *Controller) Render(params ...interface{}) Response {
+    timeStarted := time.Now()
+    view := &View{
+        Name: c.Name,
+        C: c,
+    }
+
+    view.RenderView()
+
+
+
+    diff := time.Since(timeStarted).String()
+
+    LOGGER.Printf("Views processed in %s", diff)
+    return Response{}
+}
+
 
 
 var App_controllers map[string]interface{} = make(map[string]interface{})
