@@ -4,6 +4,7 @@ import (
 //	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 type Params map[string]string
@@ -56,12 +57,11 @@ func (router *Router) match(request *http.Request) Route {
 			route = r
 		}
 
-		//Support for wildcard route. Returns only if no route matcher to current request
+		//Support for wildcard route. Returns only if no route matcher to current request. No idea why, but its just 2 lines of code
 		if r.pattern == "*" {
 			wildRoute = r
 		}
 	}
-
 	if reflect.DeepEqual(route, Route{}) {
 		return wildRoute
 	}
@@ -88,6 +88,14 @@ func (route *Route) CheckRequestMethod(w http.ResponseWriter, r *http.Request) b
 	return err
 }
 
+func isAssetRequest(path string) bool  {
+	res := false
+	if strings.Contains(path, "/assets/css/") || strings.Contains(path, "/assets/js/") {
+		res = true
+	}
+	return res
+}
+
 func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 	route := router.match(r)
 
@@ -98,7 +106,6 @@ func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 	obj, ok:= LaunchController(route.controller)
 	if ok {
 		v := reflect.ValueOf(obj)
-//		ctrl_type := reflect.TypeOf(obj)
 		ctrl_field := v.Elem().Field(0)
 		var C *Controller = &Controller{Request: r,	Writer: w,	Name: route.controller, Action: route.action}
 		ctrl_field.Set(reflect.ValueOf(C))
@@ -109,8 +116,10 @@ func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 		} else {
 			res := action.Call([]reflect.Value{ })[0]
 			result := res.Interface().(Response)
-			w.Write([]byte(result.Content))
+			LOGGER.Println(result.Content)
 		}
+	} else if isAssetRequest(r.URL.Path) == true  {
+		http.ServeFile(w, r, CURRENT_DIR +  r.URL.Path)
 	} else {
 		route.ControllerNotFound(w, r)
 	}

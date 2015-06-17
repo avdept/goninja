@@ -25,7 +25,7 @@ type Response struct {
 
 func (c *Controller) Render(params ...interface{}) Response {
     timeStarted := time.Now()
-    view := &View{
+    view := View{
         Name: c.Name,
         C: c,
     }

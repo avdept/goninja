@@ -7,6 +7,9 @@ import (
 	"os"
 )
 
+
+var CURRENT_DIR, err = os.Getwd()
+
 var LOGGER = log.New(os.Stdout, "", log.Ldate | log.Ltime )
 
 func Run(r *Router) {
