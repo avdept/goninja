@@ -1,5 +1,5 @@
 # Goninja
-Simple web framework using Golang
+Simple web View-Controller framework using Golang. At the current moment its in very early development. In future basic model layer will be added, so it'd be possible to import 3rd party orm
 
 ## Routes
 
@@ -53,7 +53,10 @@ The controller function should always have `goninja.Response` as return type.Thi
 1. Add more flexibility to `views` module. Make it respond with not just `html` but at least `json`, `xml`
 2. Create router, that would match urls not just by name, but by mask(e.g. passing `id` - `users_controller/:id/edit`)
 3. Sessions
-4. TBA
+4. Create skeleton for application, and possibly command line tool, to generate project.
+5. Move some data to config files.
+6. Add more logging.
+7. Check for orm's and embed some into project, adding model layer
 
     
 
