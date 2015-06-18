@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"regexp"
 )
 
 type Params map[string]string
@@ -31,7 +32,7 @@ func NewRouter() *Router {
 }
 
 func (r *Router) Route(method string, pattern string, action string, controller string, c interface{}) *Router {
-	route := Route{method, pattern, action, controller}
+	route := Route{method, pattern, action, controller, }
 	CreateControllers(controller, c)
 	r.routes = append(r.routes, route)
 	return r
@@ -45,26 +46,41 @@ func (r *Router) RootRoute(action string, controller string, c interface{}) *Rou
 func (router *Router) match(request *http.Request) Route {
 
 	var route Route
-	var wildRoute Route
+//	var wildRoute Route
+
+	if strings.Contains(request.URL.Path, "/assets/") {
+		return route
+	}
 
 	for _, r := range router.routes  {
 
 		if request.URL.Path == "/" && r.pattern == "/"{
-			return  r
+			return  r  //root url
 		}
 
-		if r.pattern == request.URL.Path{
+		LOGGER.Println(regexp.MustCompile(r.pattern))
+
+		request_pieces:= strings.Split(request.URL.Path, "/")
+		route_pieces:= strings.Split(r.pattern, "/")
+		LOGGER.Println(request_pieces[0])
+		LOGGER.Println(request_pieces[1])
+
+		if request_pieces[1] == route_pieces[0] {  //WE have matched controller
+			if len(request_pieces) >= 2 {  //moving forward. We have some object to server
+				return r
+			} else {  //return index action
+				if strings.ToLower(r.action) == "index" {
+					route = r
+				}
+			}
+			LOGGER.Println("MATCHER")
 			route = r
-		}
-
-		//Support for wildcard route. Returns only if no route matcher to current request. No idea why, but its just 2 lines of code
-		if r.pattern == "*" {
-			wildRoute = r
+			return route
 		}
 	}
-	if reflect.DeepEqual(route, Route{}) {
-		return wildRoute
-	}
+//	if reflect.DeepEqual(route, Route{}) {
+//		return wildRoute
+//	}
 	return route
 }
 
@@ -90,6 +106,7 @@ func (route *Route) CheckRequestMethod(w http.ResponseWriter, r *http.Request) b
 
 func isAssetRequest(path string) bool  {
 	res := false
+	//TODO add configurator
 	if strings.Contains(path, "/assets/css/") || strings.Contains(path, "/assets/js/") {
 		res = true
 	}
@@ -119,6 +136,7 @@ func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 			LOGGER.Println(result.Content)
 		}
 	} else if isAssetRequest(r.URL.Path) == true  {
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		http.ServeFile(w, r, CURRENT_DIR +  r.URL.Path)
 	} else {
 		route.ControllerNotFound(w, r)
