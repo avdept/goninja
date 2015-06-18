@@ -1,5 +1,5 @@
 # Goninja
-Simple web View-Controller framework using Golang. At the current moment its in very early development. In future basic model layer will be added, so it'd be possible to import 3rd party orm
+Simple web View-Controller framework using Golang. At the current moment its in very early development. In future basic model layer will be added, so it'd be possible to import 3rd party orm. This framework mostly inspired by Rails, so method\function names might be same.
 
 ## Routes
 
