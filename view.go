@@ -3,7 +3,7 @@ package goninja
 import (
 	"strings"
 //	"html"
-	"text/template"
+	"html/template"
 )
 
 
