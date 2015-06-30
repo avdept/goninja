@@ -6,26 +6,32 @@ import (
 )
 
 //File with some basic helpers
-//TODO i have no idea how to organize this piece of code, since my experience with golang less than 3 weeks
+//TODO Refactor this, since I have no idea how to organize this piece of code
 func InitHelpers() {
-	FuncMap["css_asset_path"] = func(path string) template.HTML {
-		name := path
-		if strings.HasSuffix(path, ".css") {
-			name = "/assets/css/" + path
-		} else {
-			name = "/assets/css/" + path + ".css"
-		}
-		return stylesheet_tag(name)
-	}
+	FuncMap["css_asset_path"] = stylesheet_tag
+	FuncMap["javascript_asset_path"] = javascript_tag
+
 }
 
 
 
 
-func stylesheet_tag(filename string) template.HTML {
-	return template.HTML(`<link rel="stylesheet" type="text/css" href="` + filename + `">`)
+func stylesheet_tag(path string) template.HTML {
+	name := path
+	if strings.HasSuffix(path, ".css") {
+		name = "/assets/css/" + path
+	} else {
+		name = "/assets/css/" + path + ".css"
+	}
+	return template.HTML(`<link rel="stylesheet" type="text/css" href="` + name + `">`)
 }
 
 func javascript_tag(filename string) template.HTML {
-	return template.HTML(`<script src="` + filename + `">`)
+	name := filename
+	if strings.HasSuffix(filename, ".js") {
+		name = "/assets/js/" + filename
+	} else {
+		name = "/assets/js/" + filename + ".js"
+	}
+	return template.HTML(`<script src="` + name + `"></script>`)
 }

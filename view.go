@@ -32,7 +32,8 @@ func (v *View) RenderView() {
 
 
 	tmpl := template.New("base.tmpl").Funcs(FuncMap)
-	tmpl.ParseFiles(layout_path, v.TemplatePath(v.C.Action), v.TemplatePath("header"))
+	template.Must(tmpl.ParseFiles(layout_path, v.TemplatePath(v.C.Action), v.TemplatePath("header")))
+	LOGGER.Println(v.TemplatePath(v.C.Action))
 
 
 	if err == nil {

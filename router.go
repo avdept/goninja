@@ -19,11 +19,14 @@ type Router struct {
 	named_routes map[string]*Route
 }
 
+var pattern string = "[a-zA-Z0-9]+"
+
 type Route struct {
 	method string
 	pattern string
 	action string
 	controller string
+
 }
 
 func NewRouter() *Router {
@@ -46,41 +49,44 @@ func (r *Router) RootRoute(action string, controller string, c interface{}) *Rou
 func (router *Router) match(request *http.Request) Route {
 
 	var route Route
-//	var wildRoute Route
 
 	if strings.Contains(request.URL.Path, "/assets/") {
 		return route
 	}
 
+	RouteLoop:
 	for _, r := range router.routes  {
 
-		if request.URL.Path == "/" && r.pattern == "/"{
-			return  r  //root url
+		LOGGER.Println(request.URL.Path)
+
+		if request.URL.Path == "/"{
+			if r.pattern == "/" {
+				route = r//root url
+				break RouteLoop
+			} else {
+				continue RouteLoop
+			}
 		}
 
-		LOGGER.Println(regexp.MustCompile(r.pattern))
-
-		request_pieces:= strings.Split(request.URL.Path, "/")
 		route_pieces:= strings.Split(r.pattern, "/")
-		LOGGER.Println(request_pieces[0])
-		LOGGER.Println(request_pieces[1])
+		request_pieces := strings.Split(request.URL.Path, "/")
 
-		if request_pieces[1] == route_pieces[0] {  //WE have matched controller
-			if len(request_pieces) >= 2 {  //moving forward. We have some object to server
-				return r
-			} else {  //return index action
-				if strings.ToLower(r.action) == "index" {
-					route = r
-				}
+		for i, x:= range route_pieces {
+			if len(x) > 0 && string(x[0]) == ":" {
+				route_pieces[i] = pattern
 			}
-			LOGGER.Println("MATCHER")
+
+		}
+		if len(route_pieces) != len(request_pieces) {
+			continue RouteLoop
+		}
+		route_regexp_string := strings.Join(route_pieces, "/")
+		if route_regexp_string != "/" && regexp.MustCompile(route_regexp_string).MatchString(request.URL.Path) {  //WE have matched controller
 			route = r
-			return route
+			break RouteLoop
 		}
 	}
-//	if reflect.DeepEqual(route, Route{}) {
-//		return wildRoute
-//	}
+
 	return route
 }
 
@@ -107,7 +113,7 @@ func (route *Route) CheckRequestMethod(w http.ResponseWriter, r *http.Request) b
 func isAssetRequest(path string) bool  {
 	res := false
 	//TODO add configurator
-	if strings.Contains(path, "/assets/css/") || strings.Contains(path, "/assets/js/") {
+	if strings.Contains(path, "/assets/css/") || strings.Contains(path, "/assets/js/") || strings.Contains(path, "/assets/fonts/") {
 		res = true
 	}
 	return res
