@@ -8,9 +8,6 @@ import (
 
 
 
-
-
-
 var views_path = CURRENT_DIR + "/app/views/"
 var layout_path = CURRENT_DIR + "/app/views/layouts/base.tmpl"
 
@@ -32,10 +29,14 @@ func (v *View) RenderView() {
 
 
 	tmpl := template.New("base.tmpl").Funcs(FuncMap)
-	template.Must(tmpl.ParseFiles(layout_path, v.TemplatePath(v.C.Action), v.TemplatePath("header")))
+	template.Must(tmpl.ParseFiles(layout_path, v.TemplatePath(v.C.Action)))
+
+	for _, view := range v.C.Views {
+		LOGGER.Println(tmpl)
+		tmpl.ParseFiles(v.TemplatePath(view))
+	}
+
 	LOGGER.Println(v.TemplatePath(v.C.Action))
-
-
 	if err == nil {
 		tmpl.Execute(v.C.Writer, nil)
 	} else {
