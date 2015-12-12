@@ -43,7 +43,7 @@ The controller function should always have `goninja.Response` as return type.Thi
 
 `c.Render()` returns `goninja.Response` by itself. Also this function renders `html` template from `app/views/controller_name/action_name.html`. `controller_name` and `action_name` are taken from `routes` file.
 
-
+`c.Redirect(absolute_url String)` redirects to provided url with method `GET` and status code `301`. In plans to extend, allowing use user defined status codes. Another goal is create absolute urls from relative, hiding all logic into framework's code, and possibly usage of named routes
 
 
 
@@ -51,12 +51,11 @@ The controller function should always have `goninja.Response` as return type.Thi
 ## Roadmap
 
 1. Add more flexibility to `views` module. Make it respond with not just `html` but at least `json`, `xml`
-2. Create router, that would match urls not just by name, but by mask(e.g. passing `id` - `users_controller/:id/edit`)
-3. Sessions
-4. Create skeleton for application, and possibly command line tool, to generate project.
-5. Move some data to config files.
-6. Add more logging.
-7. Check for orm's and embed some into project, adding model layer
+2. Sessions
+3. Create skeleton for application, and possibly command line tool, to generate project.
+4. Move some data to config files.
+5. Add more logging.
+6. Check for orm's and embed some into project, adding model layer
 
     
 
