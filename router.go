@@ -81,7 +81,7 @@ func (router *Router) match(request *http.Request) Route {
 			continue RouteLoop
 		}
 		route_regexp_string := strings.Join(route_pieces, "/")
-		if route_regexp_string != "/" && regexp.MustCompile(route_regexp_string).MatchString(request.URL.Path) {  //WE have matched controller
+		if route_regexp_string != "/" && regexp.MustCompile(route_regexp_string).MatchString(request.URL.Path) && request.Method == r.method {  //WE have matched controller
 			route = r
 			break RouteLoop
 		}
@@ -121,7 +121,7 @@ func isAssetRequest(path string) bool  {
 
 func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
 	route := router.match(r)
-
+	LOGGER.Println("Request: " + r.URL.Path)
 	// TODO this might be need rethinked
 	if route.CheckRequestMethod(w, r) {
 		return
