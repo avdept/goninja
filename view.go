@@ -55,6 +55,13 @@ func (v *View) RenderView(data interface{}) {
 
 }
 
+func (v *View) RenderJson(jsonString []byte) {
+	LOGGER.Println(jsonString);
+	writer := v.C.Writer
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(jsonString);
+}
+
 func Exists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {

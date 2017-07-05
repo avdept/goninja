@@ -4,6 +4,8 @@ import (
     "net/http"
     "time"
     "strings"
+    "encoding/json"
+    "reflect"
 )
 
 type Controller struct {
@@ -15,6 +17,9 @@ type Controller struct {
     Views []string
 }
 
+const JSON_FORMAT string = "application/json"
+const HTML_FORMAT string = "text/html"
+const XML_FORMAT string = "text/xml"
 
 type Response struct {
     Content string
@@ -25,20 +30,43 @@ var App_controllers map[string]interface{} = make(map[string]interface{})
 func (c *Controller) Render(data interface{}, params ...interface{}) Response {
     c.Params();
     timeStarted := time.Now()
-    view := View{
-        Name: c.Name,
-        C: c,
+    view := c.createView();
+    requestFormat := c.RequestFormat()
+    if (requestFormat == HTML_FORMAT) {
+        //    if viewParams := params["views"]; viewParams != nil {
+        //        view.RenderView(viewParams)
+        //
+        //    } else {
+        view.RenderView(data)
+        //    }
+    } else if (requestFormat == JSON_FORMAT) {
+        //view.RenderJson(data)
     }
     extractParams(params)
-//    if viewParams := params["views"]; viewParams != nil {
-//        view.RenderView(viewParams)
-//
-//    } else {
-        view.RenderView(data)
-//    }
+
     diff := time.Since(timeStarted).String()
     LOGGER.Printf("Views processed in %s", diff)
     return Response{}
+}
+
+func (c *Controller) RenderJson(jsonPayload interface{}) Response {
+
+    jsonString, err := json.Marshal(jsonPayload);
+    LOGGER.Println(jsonString);
+    if err == nil {
+        view := c.createView();
+        view.RenderJson(jsonString)
+    } else {
+        LOGGER.Println(err);
+    }
+    return Response{}
+}
+
+func (c *Controller) createView() View {
+    return View{
+        Name: c.Name,
+        C: c,
+    }
 }
 
 func (c *Controller) Redirect(url string) Response {
@@ -65,6 +93,12 @@ func CreateControllers(name string, c interface{}) {
 }
 
 func extractParams(params ...interface{}) {
+}
+
+func (c *Controller) RequestFormat() string {
+    parsedFromHeader := c.Request.Header["Content-Type"]
+    LOGGER.Println(reflect.TypeOf(parsedFromHeader));
+    return "123"
 }
 
 func LaunchController(name string) (s interface{}, r bool) {
