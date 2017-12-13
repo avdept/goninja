@@ -1,11 +1,11 @@
 package goninja
 
 import (
-//	"fmt"
+	//	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 type Params map[string]string
@@ -14,7 +14,7 @@ type Router struct {
 
 	//slice with all routes
 	routes []Route
-	test string
+	test   string
 	//hash with named route that matchers Route object
 	named_routes map[string]*Route
 }
@@ -22,11 +22,10 @@ type Router struct {
 var pattern string = "[a-zA-Z0-9]+"
 
 type Route struct {
-	method string
-	pattern string
-	action string
+	method     string
+	pattern    string
+	action     string
 	controller string
-
 }
 
 func NewRouter() *Router {
@@ -35,7 +34,7 @@ func NewRouter() *Router {
 }
 
 func (r *Router) Route(method string, pattern string, action string, controller string, c interface{}) *Router {
-	route := Route{method, pattern, action, controller, }
+	route := Route{method, pattern, action, controller}
 	CreateControllers(controller, c)
 	r.routes = append(r.routes, route)
 	return r
@@ -45,7 +44,6 @@ func (r *Router) RootRoute(action string, controller string, c interface{}) *Rou
 	return r.Route("GET", "/", action, controller, c)
 }
 
-
 func (router *Router) match(request *http.Request) Route {
 
 	var route Route
@@ -54,24 +52,24 @@ func (router *Router) match(request *http.Request) Route {
 		return route
 	}
 
-	RouteLoop:
-	for _, r := range router.routes  {
+RouteLoop:
+	for _, r := range router.routes {
 
 		LOGGER.Println(request.URL.Path)
 
-		if request.URL.Path == "/"{
+		if request.URL.Path == "/" {
 			if r.pattern == "/" {
-				route = r//root url
+				route = r //root url
 				break RouteLoop
 			} else {
 				continue RouteLoop
 			}
 		}
 
-		route_pieces:= strings.Split(r.pattern, "/")
+		route_pieces := strings.Split(r.pattern, "/")
 		request_pieces := strings.Split(request.URL.Path, "/")
 
-		for i, x:= range route_pieces {
+		for i, x := range route_pieces {
 			if len(x) > 0 && string(x[0]) == ":" {
 				route_pieces[i] = pattern
 			}
@@ -81,7 +79,7 @@ func (router *Router) match(request *http.Request) Route {
 			continue RouteLoop
 		}
 		route_regexp_string := strings.Join(route_pieces, "/")
-		if route_regexp_string != "/" && regexp.MustCompile(route_regexp_string).MatchString(request.URL.Path) && request.Method == r.method {  //WE have matched controller
+		if route_regexp_string != "/" && regexp.MustCompile(route_regexp_string).MatchString(request.URL.Path) && request.Method == r.method { //WE have matched controller
 			route = r
 			break RouteLoop
 		}
@@ -110,7 +108,7 @@ func (route *Route) CheckRequestMethod(w http.ResponseWriter, r *http.Request) b
 	return err
 }
 
-func isAssetRequest(path string) bool  {
+func isAssetRequest(path string) bool {
 	res := false
 	//TODO add configurator
 	if strings.Contains(path, "/assets/css/") || strings.Contains(path, "/assets/js/") || strings.Contains(path, "/assets/fonts/") {
@@ -119,31 +117,36 @@ func isAssetRequest(path string) bool  {
 	return res
 }
 
-func  (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
+func (router *Router) Handle(w http.ResponseWriter, r *http.Request) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	route := router.match(r)
-	LOGGER.Println("Request: " + r.URL.Path)
+	LOGGER.Println("Processing request: " + r.URL.Path)
 	// TODO this might be need rethinked
 	if route.CheckRequestMethod(w, r) {
 		return
 	}
-	obj, ok:= LaunchController(route.controller)
+	obj, ok := LaunchController(route.controller)
 	if ok {
-		v := reflect.ValueOf(obj)
-		ctrl_field := v.Elem().Field(0)
-		var C *Controller = &Controller{Request: r,	Writer: w,	Name: route.controller, Action: route.action}
-		ctrl_field.Set(reflect.ValueOf(C))
-		action := v.MethodByName(route.action)
-		if !action.IsValid(){
+
+		controllerValues := reflect.ValueOf(obj)
+
+		goninjaCtrlField := controllerValues.Elem().Field(0)
+		FullController := Controller{Request: r, Writer: w, Name: route.controller, Action: route.action}
+		goninjaCtrlField.Set(reflect.ValueOf(FullController))
+		action := controllerValues.MethodByName(route.action)
+		if !action.IsValid() {
 			w.WriteHeader(404)
-			w.Write([]byte("Action with name " + route.action+  " wasn't found in controller " + route.controller))
+			w.Write([]byte("Action with name " + route.action + " wasn't found in controller " + route.controller))
 		} else {
-			res := action.Call([]reflect.Value{ })[0]
+			res := action.Call([]reflect.Value{})[0]
 			result := res.Interface().(Response)
+			LOGGER.Println(action)
 			LOGGER.Println(result.Content)
 		}
-	} else if isAssetRequest(r.URL.Path) == true  {
+	} else if isAssetRequest(r.URL.Path) == true {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		http.ServeFile(w, r, CURRENT_DIR +  r.URL.Path)
+		http.ServeFile(w, r, CURRENT_DIR+r.URL.Path)
 	} else {
 		route.ControllerNotFound(w, r)
 	}
